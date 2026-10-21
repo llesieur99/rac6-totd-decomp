@@ -122,6 +122,8 @@ to the disc.  The disc image of the same game has been measured as well:
 
 The disc is the **original SELF** container, and its payload is encrypted
 with the disc key - a separate key from the console's NPDRM licence.
-The key for `BCUS98127` is not in the workspace yet, so the disc's
-executable has not been read; the package carries the same program and is
-the readable source.
+The key for `BCUS98127` is not in the workspace yet.
+
+The disc's layout, its encryption and the way its key is derived are in
+[DISC.md](DISC.md), and the scheme is implemented in
+[`tools/ps3disc.py`](../tools/ps3disc.py).

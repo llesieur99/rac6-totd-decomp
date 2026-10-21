@@ -88,6 +88,7 @@ series, and the first two are the reason this repository exists:
 | [docs/COMPILER.md](docs/COMPILER.md) | the compiler, its two revisions, and how to rebuild it |
 | [docs/ABI.md](docs/ABI.md) | the Cell OS Lv-2 ABI as the code shows it: frames, the TOC, the nop after a call |
 | [docs/CROSS-GAME.md](docs/CROSS-GAME.md) | the same engine in *A Crack in Time*, and what the two builds teach |
+| [docs/DISC.md](docs/DISC.md) | the retail disc: its layout, its encryption, and the key it waits for |
 | [docs/STATE.md](docs/STATE.md) | the anchor: where the project stands, and what to do next |
 | [docs/ROADMAP.md](docs/ROADMAP.md) | the ordered work, and what each step needs |
 
