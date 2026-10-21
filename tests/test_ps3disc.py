@@ -60,9 +60,8 @@ class DerivationTest(unittest.TestCase):
         key = ps3disc.disc_key_from_d1(d1)
         self.assertEqual(len(key), 16)
         # the derivation is a single AES-128-CBC pass
-        from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
-        encrypt = Cipher(algorithms.AES(ps3disc.D1_KEY), modes.CBC(ps3disc.D1_IV)).encryptor()
-        self.assertEqual(key, encrypt.update(d1) + encrypt.finalize())
+        from aes import cbc_encrypt
+        self.assertEqual(key, cbc_encrypt(ps3disc.D1_KEY, ps3disc.D1_IV, d1))
 
     def test_two_d1s_give_two_keys(self):
         self.assertNotEqual(ps3disc.disc_key_from_d1(b"\x00" * 16),

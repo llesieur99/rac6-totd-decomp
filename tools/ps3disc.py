@@ -33,10 +33,9 @@ import os
 import struct
 import sys
 
-try:
-    from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
-except ImportError:  # pragma: no cover
-    Cipher = None
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+from aes import cbc_decrypt, cbc_encrypt  # noqa: E402
 
 SECTOR = 2048
 
@@ -52,8 +51,8 @@ SELF_MAGIC = b"SCE\x00"
 
 
 def need_crypto() -> None:
-    if Cipher is None:
-        raise SystemExit("error: this tool needs the 'cryptography' package")
+    """Nothing to check: the block cipher is in the repository."""
+    return
 
 
 def region_table(head: bytes) -> list[int]:
@@ -90,16 +89,12 @@ def sector_iv(lba: int) -> bytes:
 
 def disc_key_from_d1(d1: bytes) -> bytes:
     """The disc key of a console's "d1"."""
-    need_crypto()
-    encrypt = Cipher(algorithms.AES(D1_KEY), modes.CBC(D1_IV)).encryptor()
-    return encrypt.update(d1) + encrypt.finalize()
+    return cbc_encrypt(D1_KEY, D1_IV, d1)
 
 
 def decrypt_sector(key: bytes, lba: int, data: bytes) -> bytes:
     """One sector, decrypted on its own."""
-    need_crypto()
-    decrypt = Cipher(algorithms.AES(key), modes.CBC(sector_iv(lba))).decryptor()
-    return decrypt.update(data) + decrypt.finalize()
+    return cbc_decrypt(key, sector_iv(lba), data)
 
 
 def parse_key(text: str) -> bytes:

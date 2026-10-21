@@ -48,5 +48,35 @@ class AesTest(unittest.TestCase):
         self.assertEqual(stream.apply(data, 0), bytes(expected))
 
 
+class AesDecryptTest(unittest.TestCase):
+    def test_fips_197_vector(self):
+        """FIPS-197, appendix C.1: the inverse cipher."""
+        key = bytes.fromhex("000102030405060708090a0b0c0d0e0f")
+        cipher = bytes.fromhex("69c4e0d86a7b0430d8cdb78070b4c55a")
+        plain = bytes.fromhex("00112233445566778899aabbccddeeff")
+        self.assertEqual(aes.AES128(key).decrypt(cipher), plain)
+
+    def test_cbc_round_trip(self):
+        key = bytes(range(16))
+        iv = bytes(range(16, 32))
+        data = bytes(range(64))
+        self.assertEqual(aes.cbc_decrypt(key, iv, aes.cbc_encrypt(key, iv, data)), data)
+
+    def test_cbc_matches_the_library(self):
+        key = bytes(range(16))
+        iv = bytes(range(16, 32))
+        data = bytes(range(64))
+        try:
+            from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
+        except ImportError:
+            self.skipTest("the library is not installed")
+        encryptor = Cipher(algorithms.AES(key), modes.CBC(iv)).encryptor()
+        expected = encryptor.update(data) + encryptor.finalize()
+        self.assertEqual(aes.cbc_encrypt(key, iv, data), expected)
+        decryptor = Cipher(algorithms.AES(key), modes.CBC(iv)).decryptor()
+        self.assertEqual(aes.cbc_decrypt(key, iv, expected),
+                         decryptor.update(expected) + decryptor.finalize())
+
+
 if __name__ == "__main__":
     unittest.main()

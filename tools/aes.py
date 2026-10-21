@@ -1,4 +1,4 @@
-"""AES-128 in pure Python, plus a CTR keystream helper.
+"""AES-128 in pure Python, plus the CBC and CTR modes.
 
 The PS3 package reader must work on a machine with nothing but the Python
 standard library, so the block cipher is implemented here.  When the
@@ -6,8 +6,9 @@ standard library, so the block cipher is implemented here.  When the
 it is orders of magnitude faster; both paths are checked against each other
 and against the FIPS-197 vector by the unit tests.
 
-Only the forward (encryption) direction is needed: CTR mode encrypts the
-counter and XORs the result with the data.
+The forward (encryption) direction is what the package reader needs; the
+inverse one is what the disc reader needs, and both are here so that a
+tool never has to depend on a package to work.
 """
 
 from __future__ import annotations
@@ -34,6 +35,11 @@ SBOX = bytes.fromhex(
 RCON = (0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80, 0x1B, 0x36,
         0x6C, 0xD8, 0xAB, 0x4D, 0x9A, 0x2F, 0x5E, 0xBC, 0x63, 0xC6,
         0x97, 0x35, 0x6A, 0xD4, 0xB3, 0x7D, 0xFA, 0xEF, 0xC5, 0x91)
+
+# the inverse substitution table, built from the forward one
+INV_SBOX = bytes(0 for _ in range(256))
+for _index, _value in enumerate(SBOX):
+    INV_SBOX = INV_SBOX[:_value] + bytes([_index]) + INV_SBOX[_value + 1:]
 
 
 def _xtime(a: int) -> int:
@@ -90,7 +96,7 @@ def encrypt_block(key_schedule: list[list[int]], block: bytes) -> bytes:
 
 
 class AES128:
-    """Pure-Python AES-128 encryption (no decryption is needed here)."""
+    """Pure-Python AES-128, both directions."""
 
     def __init__(self, key: bytes):
         self._schedule = expand_key(key)
@@ -99,6 +105,76 @@ class AES128:
         if len(block) != 16:
             raise ValueError("AES blocks are 16 bytes")
         return encrypt_block(self._schedule, block)
+
+    def decrypt(self, block: bytes) -> bytes:
+        if len(block) != 16:
+            raise ValueError("AES blocks are 16 bytes")
+        return decrypt_block(self._schedule, block)
+
+
+def decrypt_block(key_schedule: list[list[int]], block: bytes) -> bytes:
+    """The inverse cipher: the same state layout as the forward one."""
+    state = [b ^ k for b, k in zip(block, key_schedule[10])]
+    for rnd in range(9, -1, -1):
+        # InvShiftRows: the row r is rotated right by r
+        state = [state[(i - 4 * (i % 4)) % 16] for i in range(16)]
+        state = [INV_SBOX[b] for b in state]
+        state = [b ^ k for b, k in zip(state, key_schedule[rnd])]
+        if rnd:
+            out = []
+            for c in range(4):
+                a0, a1, a2, a3 = state[c * 4:c * 4 + 4]
+                out.extend([
+                    _mul(a0, 14) ^ _mul(a1, 11) ^ _mul(a2, 13) ^ _mul(a3, 9),
+                    _mul(a0, 9) ^ _mul(a1, 14) ^ _mul(a2, 11) ^ _mul(a3, 13),
+                    _mul(a0, 13) ^ _mul(a1, 9) ^ _mul(a2, 14) ^ _mul(a3, 11),
+                    _mul(a0, 11) ^ _mul(a1, 13) ^ _mul(a2, 9) ^ _mul(a3, 14),
+                ])
+            state = out
+    return bytes(state)
+
+
+def cbc_encrypt(key: bytes, iv: bytes, data: bytes) -> bytes:
+    """AES-128-CBC, encryption."""
+    if len(data) % 16:
+        raise ValueError("the data is not a whole number of blocks")
+    aes = AES128(key)
+    fast = _fast_encryptor(key)
+    out = bytearray()
+    previous = iv
+    for offset in range(0, len(data), 16):
+        block = bytes(a ^ b for a, b in zip(data[offset:offset + 16], previous))
+        if fast is not None:
+            previous = fast(block)
+        else:
+            previous = aes.encrypt(block)
+        out += previous
+    return bytes(out)
+
+
+def cbc_decrypt(key: bytes, iv: bytes, data: bytes) -> bytes:
+    """AES-128-CBC, decryption."""
+    if len(data) % 16:
+        raise ValueError("the data is not a whole number of blocks")
+    fast = None
+    try:
+        from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
+        fast = Cipher(algorithms.AES(key), modes.CBC(iv)).decryptor().update
+    except Exception:  # pragma: no cover - depends on the host
+        fast = None
+    aes = AES128(key)
+    out = bytearray()
+    previous = iv
+    for offset in range(0, len(data), 16):
+        block = data[offset:offset + 16]
+        if fast is not None:
+            # the library does the chaining itself
+            out += fast(block)
+        else:
+            plain = aes.decrypt(block)
+            out += bytes(a ^ b for a, b in zip(plain, previous))
+        previous = block
+    return bytes(out)
 
 
 def _fast_encryptor(key: bytes):
