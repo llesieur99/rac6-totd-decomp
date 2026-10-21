@@ -19,6 +19,7 @@
 | the link step | **done**: the SDK's TOC-adjusting call rule is found, measured and reproduced ([ABI.md](ABI.md)) |
 | the globals | **done**: 121 TOC slots, 17,789 access sites ([GLOBALS.md](GLOBALS.md)) |
 | the same engine in the next game | **done**: 721 correspondences, 73.8 % of the instructions identical ([CROSS-GAME.md](CROSS-GAME.md)) |
+| the retail disc | **done**: the disc's program is read, and it is a **second build** of the game ([DISC.md](DISC.md)) |
 | the naming | the method is published; the names themselves stay in the contributor's workspace ([NAMING.md](NAMING.md)) |
 
 ## The measured facts
@@ -77,6 +78,28 @@ short, the same epilogue.  Only the callee's address differs.
 One source, one set of options, two compilers, two games, the same bytes.
 That is what rules out the coincidence: the source is the authentic form
 of the routine, not a shape that happens to fit one build.
+
+### The disc carries a second build, and the source fits both
+
+The retail disc is read now ([DISC.md](DISC.md)), and it holds a
+**different build** of the game than the package does: the disc is
+`BCUS98127` version 02.00, the package is `NPUA80965` version 01.00, and
+their programs are not the same file.
+
+The two builds are close: the engine's initialisation function is at
+**`0x10210` in both**, and **43 of its 44 bytes are identical** - the one
+byte that differs is the displacement of the first call.  The disc's build
+has 176,024 bytes less code.
+
+And the same source reproduces it in both:
+
+| build | the callee | the result |
+|---|---|---|
+| the package (v01.00) | `0x146AC` | **44 of 44 bytes** |
+| the disc (v02.00) | `0x146C8` | **44 of 44 bytes** |
+
+One source, two releases, two layouts, the same bytes.  That is the
+project's evidence in its strongest form.
 
 ### One attempt parked
 

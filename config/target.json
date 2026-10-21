@@ -30,6 +30,9 @@
     "image_size": 24163319808,
     "image_sha256": null,
     "volume_id": "RATCHET5",
+    "title_id": "BCUS98127",
+    "version": "02.00",
+    "edition": "Greatest Hits",
     "format": "BD-ROM, ISO9660 (PVD at sector 16) with a UDF 2.01 file set (NSR03 at sector 20)",
     "sectors": 11798496,
     "region_table": [4031, 11667392, 11798495],
@@ -39,9 +42,15 @@
       {"index": 2, "first": 11667392, "last": 11798495, "encrypted": false, "content": "the update"}
     ],
     "executable_lba": 4032,
-    "encrypted": true,
-    "note": "the disc's game data is encrypted with the disc key: 64 sectors at LBA 5056 measure 7.999 bits per byte. The disc key for BCUS98127 is not in the workspace yet; the scheme, the three ways to get a key and the validated recipe are in docs/DISC.md. The package carries the same program and is the readable source.",
-    "disc_key": null
+    "program": {
+      "note": "the disc carries a **different build** of the game than the package; the program's SELF is decoded and its ELF rebuilt",
+      "self": {"size": 11161440, "sha256": "7889e889a1b718e29f7483c2b05c14d7330888e06dd937af01fe86171e70050f", "key_revision": "0x0001", "program_type": 4},
+      "ppu_elf": {"size": 10923400, "sha256": "4e479829857476000f1b2e62e72267ef805d1dbe7b8abc0a11b7d33c2a3732c0", "entry": "0x859418", "program_headers": 8, "section_headers": 34},
+      "text_segment": "0x82C648 (8,570,696 bytes) - 176,024 bytes smaller than the package's build"
+    },
+    "disc_key": null,
+    "disc_key_source": "the preservation community's database, one key per disc; the disc's own key is the workspace's business and is never published here",
+    "note": "the disc's game data is encrypted with the disc key; the scheme, the three ways to get a key and the validated recipe are in docs/DISC.md. The **program** is read: the SELF's metadata is keyed by the SELF key of its program type, and the disc's executable is a second build of the game."
   },
   "executable": {
     "path": "USRDIR/EBOOT.BIN",

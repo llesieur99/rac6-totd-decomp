@@ -50,6 +50,7 @@ The target's disc:
 | image size | 24,163,319,808 bytes (22.50 GiB) |
 | sectors | 11,798,496 |
 | volume id | `RATCHET5` |
+| title id | `BCUS98127`, version 02.00, Greatest Hits |
 | the table | `[4031, 11667392, 11798495]` |
 | region 0 | sectors 0 to 4031 - the container, in the clear |
 | region 1 | sectors 4032 to 11667391 - **the game data, encrypted** |
@@ -58,7 +59,47 @@ The target's disc:
 
 The executable is therefore in the *second* region, at its very first
 sector, and the file tree that names it is in the clear: the platform's
-own extractor reads it without a key.
+own extractor reads it without a key.  The `PARAM.SFO` at LBA 2049 reads
+as a valid parameter file too, and it names the disc itself: `BCUS98127`,
+version `02.00`.
+
+## The disc's program, and what it says
+
+**The disc carries a second build of the game, and it is not the build the
+package carries.**
+
+| | the disc (`BCUS98127` v02.00) | the package (`NPUA80965` v01.00) |
+|---|---|---|
+| the executable | 11,161,440 bytes | 11,161,440 bytes |
+| the SELF's key revision | `0x0001` (a retail disc) | `0x001C` (NPDRM) |
+| the rebuilt ELF | 10,923,400 bytes | 11,158,696 bytes |
+| the text segment | 8,570,696 bytes | 8,746,720 bytes |
+| the entry point | `0x859418` | `0x874050` |
+
+The two builds share their layout closely: the engine's initialisation
+function is at **`0x10210` in both**, and **43 of its 44 bytes are
+identical**.  The one byte that differs is the displacement of the first
+call: the disc's build calls `0x146C8` where the package's calls
+`0x146AC`.
+
+Later in the code the builds diverge: the same function of the shared
+library sits at a different address, and the disc's build has 176,024
+bytes less code.
+
+**The same source, the same options and the same link rule reproduce the
+function in both builds.**  The candidate of
+[`src/text/module_init.c`](../src/text/module_init.c) - two calls and
+nothing else - was compiled with `-O1`, linked at `0x10210` and compared
+with the retail bytes of each build:
+
+| build | the callee | the result |
+|---|---|---|
+| the package (v01.00) | `0x146AC` | **44 of 44 bytes** |
+| the disc (v02.00) | `0x146C8` | **44 of 44 bytes** |
+
+That is the project's evidence in its strongest form: the source form is
+not a shape that fits one build, it is the shape the studio's own code
+had - in two releases, two layouts, one source.
 
 ## The cipher
 
@@ -163,21 +204,25 @@ The same chain, applied to a candidate key, is what decides whether the
 key is right: the executable is at LBA 4032, and the sector decrypted
 with the right key starts with the retail executable's magic.
 
-## What is missing, for this target
+## The key, and how it was got
 
-The disc key of `BCUS98127` is the one thing the pipeline still waits for:
+The key of this disc came from the preservation community's database, and
+the way to it was simple: the site refuses the connection on **port 443**
+from this machine and answers on **port 80**.  The disc's own page
+carries the key twice - in the "Permanent Information & Control" block of
+the disc's picture, and in the key database itself.
 
-* the preservation site's database is **not reachable from this machine**
-  (the connection is refused), though a browser reaches it;
-* the console backups on the share are **NOR** dumps, and the vault that
-  holds the d1 is in the NAND.
+The key is the workspace's business and is not published here; the tool
+takes it as an argument.
 
-So the disc's executable is not read yet.  `config/target.json` says so,
-and the work is one command away:
+With it, the disc's program is read, and the result is the section above:
+a second build of the game, whose initialisation function is reproduced
+byte for byte by the same source as the package's.
 
-```sh
-python tools/ps3disc.py sectors "<the image.iso>" <the 32 hex> 4032
-```
+## What is left of the disc
 
-The package carries the same program and is the readable source, so the
-decompilation is not blocked by it.
+The **program** is read.  The game's *assets* are not: the sectors of the
+game data stay at 7.9 bits per byte with the disc key applied, because
+they are encrypted by the platform's own per-file scheme, which is a
+layer of its own.  The decompilation does not need them - it needs the
+program - so the disc is no longer on the critical path.
