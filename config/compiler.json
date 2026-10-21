@@ -1,0 +1,55 @@
+{
+  "compiler": {
+    "name": "SCEI PPC GCC 4.1.1",
+    "stamp": "GCC: (GNU) 4.1.1 (CELL 4.1.2.7, RTTI, $Rev: 1835 $)",
+    "target": "ppu-lv2",
+    "sdk": "PlayStation 3 SDK 1.9.0 generation (revision 1835)",
+    "status": "identified from the executable's own .comment section, and built from the published sources of that generation",
+    "built": {
+      "compiler": "ppu-lv2-gcc",
+      "sources": "sagemono/ps3gcc, branch toolchain-src-1.9.0-GCC411",
+      "host": "Debian jessie container",
+      "note": "the SDK's C++ library is a separate prebuilt archive and is not part of the toolchain sources: C++ compiles to an object file but does not link yet"
+    },
+    "retail_revisions": [
+      {"stamp": "GCC: (GNU) 4.1.1 (CELL 4.1.2.7, RTTI, $Rev: 1826 $)", "objects": 24},
+      {"stamp": "GCC: (GNU) 4.1.1 (CELL 4.1.2.7, RTTI, $Rev: 1830 $)", "objects": 8}
+    ],
+    "distance_to_the_retail_build": "the published sources carry revision 1835, the last of that line; the retail build used 1826 and 1830, five and four revisions earlier"
+  },
+  "flags": {
+    "status": "provisional: one function is not enough to qualify a build",
+    "tested": ["-O0", "-O1", "-O2", "-O3", "-Os"],
+    "notes": [
+      "this compiler has no -mno-save-restore-tocbase and no -mno-nop-after-bl: both were introduced with a later SDK, so the flags to qualify here are the optimisation level alone.",
+      "the optimisation level is a property of the file, not of the build: the function at 0x10210 is reproduced at -O1, while -O2 changes the order of the epilogue and -O0 changes the frame."
+    ]
+  },
+  "link_step": {
+    "rule": "a call whose target is a TOC-adjusting stub carries 'ld r2, 0x28(r1)' in its delay slot, where the compiler left a 'nop'",
+    "source": "the SDK's own header: 'place a nop after the call so that the linker can restore the TOC pointer if a TOC adjusting call stub is needed'",
+    "measured": {
+      "calls_in_the_code_segment": 51397,
+      "calls_to_a_stub": 22707,
+      "calls_to_a_stub_with_the_restore": 22707,
+      "calls_to_a_stub_with_a_nop": 0,
+      "calls_to_other_targets_with_the_restore": 28690,
+      "stubs": 1037
+    },
+    "tool": "tools/ppu_stubs.py",
+    "documented_in": "docs/ABI.md"
+  },
+  "matches": [
+    {
+      "function": "module_init",
+      "source": "src/text/module_init.c",
+      "address": "0x10210",
+      "extent": "0x10210 .. 0x1023C",
+      "bytes": 44,
+      "flags": ["-O1"],
+      "callees": ["0x146AC", "0x10200"],
+      "result": "44 of 44 bytes, after the link step"
+    }
+  ],
+  "body_gate": "open for the function listed above; closed for everything else"
+}

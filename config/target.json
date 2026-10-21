@@ -1,0 +1,81 @@
+{
+  "game": "Ratchet & Clank Future: Tools of Destruction",
+  "platform": "PlayStation 3",
+  "region": "USA",
+  "content_id": "UP9000-NPUA80965_00-TOOLSOFDESTRUCT1",
+  "title_id": "NPUA80965",
+  "param_sfo": {
+    "size": 1040,
+    "sha256": "5ff8225a5a169813c0da91bc2c17c5461864e0aaa1ff833c697643651b285e4b",
+    "title": "Ratchet & Clank Future: Tools of Destruction",
+    "title_id": "NPUA80965",
+    "version": "01.00",
+    "app_version": "01.00",
+    "ps3_system_version": "04.3000",
+    "category": "HG",
+    "endianness": "little"
+  },
+  "package": {
+    "size": 16933424960,
+    "sha256": "9ebf8a801c6ef188fd9e770de6790b46bc7612820af21cd30b8db8d42db5e2fa",
+    "content_table_entries": 8,
+    "file_entries": 784,
+    "files": 564,
+    "directories": 220,
+    "platform": "PS3",
+    "revision": "0x8000",
+    "encryption": "AES-128-CTR"
+  },
+  "disc": {
+    "image_size": null,
+    "image_sha256": null,
+    "note": "the target is a PlayStation Network release; the retail disc (BCUS98127) carries the same program and is not measured yet"
+  },
+  "executable": {
+    "path": "USRDIR/EBOOT.BIN",
+    "size": 11161440,
+    "sha256": "d10633b0febc3b45af1199c7f579cd69d332ac7d5e04886e4e435e203937fc42",
+    "kind": "retail SELF (NPDRM)",
+    "key_revision": "0x001C",
+    "program_type": 8,
+    "npdrm_license": 2,
+    "npdrm_content_id": "UP9000-NPUA80965_00-TOOLSOFDESTRUCT1"
+  },
+  "ppu_elf": {
+    "size": 11158696,
+    "sha256": "f9575301e4d403260084ae48700ca248ed27c2d39cfb01049ead448e429df65f",
+    "class": "ELF64",
+    "endianness": "big",
+    "machine": "EM_NONE (0), PPU target",
+    "entry": "0x874050",
+    "program_headers": 8,
+    "section_headers": 34,
+    "section_names": false,
+    "symbol_table": false
+  },
+  "segments": [
+    {"index": 0, "vaddr": "0x10000", "filesz": "0x8576E0", "memsz": "0x8576E0", "role": "text"},
+    {"index": 1, "vaddr": "0x870000", "filesz": "0x59A18", "memsz": "0x59A18", "role": "data"},
+    {"index": 2, "vaddr": "0x10000000", "filesz": "0x5DD00", "memsz": "0x5DD00", "role": "spu-read"},
+    {"index": 3, "vaddr": "0x10060000", "filesz": "0x16B180", "memsz": "0x848550", "role": "data-and-bss"},
+    {"index": 5, "vaddr": "0x8C9A10", "filesz": "0x8", "memsz": "0x1F8", "role": "tls"},
+    {"index": 6, "vaddr": "0x867698", "filesz": "0x20", "role": "sce-dynamic"},
+    {"index": 7, "vaddr": "0x8676B8", "filesz": "0x28", "role": "sce-segsym"}
+  ],
+  "matching_compiler": null,
+  "compiler_stamps": {
+    "source": "the .comment section of the rebuilt ELF",
+    "tool": "tools/compiler_stamp.py",
+    "stamps": [
+      {"count": 24, "stamp": "GCC: (GNU) 4.1.1 (CELL 4.1.2.7, RTTI, $Rev: 1826 $)"},
+      {"count": 8, "stamp": "GCC: (GNU) 4.1.1 (CELL 4.1.2.7, RTTI, $Rev: 1830 $)"}
+    ],
+    "identified": "SCEI PPC GCC 4.1.1, the SDK 1.9.0 generation (\"CELL 4.1.2.7\"), with RTTI",
+    "note": "the retail build mixes two revisions of that compiler: 24 objects at $Rev: 1826 $ and 8 objects at $Rev: 1830 $. The published sources of that generation carry $Rev: 1835 $, the last of the line.",
+    "libraries": [
+      "Dinkumware C++ library (the SDK's libstdc++)",
+      "Lua 5.0.2",
+      "zlib 1.2.3"
+    ]
+  }
+}

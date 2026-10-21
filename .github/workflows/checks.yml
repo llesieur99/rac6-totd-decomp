@@ -1,0 +1,20 @@
+name: Source checks
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  tools:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Package, AES and PPU ELF tests
+        run: python -m unittest discover -s tests -v
+      - name: Check the pinned target
+        run: python tools/check_target.py
+      - name: No game data, keys or build artifacts in the repository
+        run: python tools/check_repository.py

@@ -1,0 +1,67 @@
+# The target, the package, the executable and the licence file
+#
+# Nothing game-derived is committed: the package, the executable and the
+# licence file stay in the private workspace.
+
+# Local target and extracted material
+baserom/
+work/pkg/
+work/eboot/
+work/analysis/
+work/lots/
+work/*.pkg
+work/*.rap
+work/*.klic
+work/*.elf
+work/*.bin
+work/*.self
+work/*.sprx
+work/*.prx
+work/*.edat
+work/*.sdat
+work/*.png
+work/*.wav
+work/*.at3
+work/*.m4a
+!work/README.md
+!work/templates/
+!work/lots/.gitkeep
+!work/analysis/.gitkeep
+
+# Generic binary artefacts
+*.pkg
+*.rap
+*.klic
+*.iso
+*.elf
+*.bin
+*.self
+*.sprx
+*.prx
+*.o
+*.a
+*.map
+*.log
+*.dmp
+*.core
+
+# Disassembly and listings
+*.asm
+*.lst
+*.s
+*.dis
+*.objdump
+*.ghidra
+*.gzf
+*.gpr
+*.rep/
+
+# Build output and scratch
+build/
+work/gate/
+.venv/
+venv/
+__pycache__/
+*.pyc
+.DS_Store
+Thumbs.db
