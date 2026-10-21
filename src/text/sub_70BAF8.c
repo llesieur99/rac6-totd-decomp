@@ -31,10 +31,9 @@
  *
  * The name
  * --------
- * `sub_70BAF8` is an alias, not a claim: the function calls one routine and
- * hands the result back, and the routine it calls has not been read
- * yet.  The name says the place, and the place is what the evidence
- * supports.
+ * `sub_70BAF8` is an alias, not a claim: the function calls one routine
+ * and returns nothing, and the routine it calls has not been read yet.
+ * The name says the place, and the place is what the evidence supports.
  *
  * The flags
  * ---------
@@ -42,7 +41,7 @@
  * aligned on four bytes, and the default of the compiler is eight.  The
  * flag is what puts the body at the retail's address.  The optimisation
  * level is a property of the *file* the function was compiled in, and it
- * is recovered file by file.
+ * is recovered file by file: this one is -O2.
  *
  * Reopening condition
  * -------------------

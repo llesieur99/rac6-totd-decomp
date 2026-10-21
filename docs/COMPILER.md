@@ -205,7 +205,7 @@ later than the objects it was built with**.
 ### The first result
 
 The rebuilt compiler is not a claim: it reproduces the retail bytes of
-**eleven functions** of the target.
+**thirty-four functions** of the target.
 
 | Function | Address | Bytes | Flags | Result |
 |---|---|---|---|---|
@@ -213,6 +213,7 @@ The rebuilt compiler is not a claim: it reproduces the retail bytes of
 | `float_to_short` | `0x6F0250` | 80 | `-O2` | **match** |
 | `sub_7049B4` | `0x7049B4` | 36 | `-O2 -falign-functions=4` | **match** |
 | `sub_7049D8` | `0x7049D8` | 36 | `-O2 -falign-functions=4` | **match** |
+| `sub_7049FC` | `0x7049FC` | 44 | `-O2 -falign-functions=4` | **match** |
 | `sub_709AB8` | `0x709AB8` | 36 | `-O2 -falign-functions=4` | **match** |
 | `sub_70BAD4` | `0x70BAD4` | 36 | `-O2 -falign-functions=4` | **match** |
 | `sub_70BAF8` | `0x70BAF8` | 36 | `-O2 -falign-functions=4` | **match** |
@@ -220,6 +221,28 @@ The rebuilt compiler is not a claim: it reproduces the retail bytes of
 | `sub_70BF74` | `0x70BF74` | 36 | `-O2 -falign-functions=4` | **match** |
 | `sub_735B40` | `0x735B40` | 36 | `-O2 -falign-functions=4` | **match** |
 | `sub_735BC0` | `0x735BC0` | 36 | `-O2 -falign-functions=4` | **match** |
+| `sub_770698` | `0x770698` | 36 | `-O1 -falign-functions=4` | **match** |
+| `sub_7706BC` | `0x7706BC` | 36 | `-O1 -falign-functions=4` | **match** |
+| `sub_7706E0` | `0x7706E0` | 36 | `-O1 -falign-functions=4` | **match** |
+| `sub_770704` | `0x770704` | 36 | `-O1 -falign-functions=4` | **match** |
+| `sub_7734D8` | `0x7734D8` | 36 | `-O1 -falign-functions=4` | **match** |
+| `sub_7734FC` | `0x7734FC` | 36 | `-O1 -falign-functions=4` | **match** |
+| `sub_773520` | `0x773520` | 36 | `-O1 -falign-functions=4` | **match** |
+| `sub_773544` | `0x773544` | 36 | `-O1 -falign-functions=4` | **match** |
+| `sub_787570` | `0x787570` | 36 | `-O2 -falign-functions=4` | **match** |
+| `sub_787594` | `0x787594` | 36 | `-O2 -falign-functions=4` | **match** |
+| `sub_7875B8` | `0x7875B8` | 36 | `-O2 -falign-functions=4` | **match** |
+| `sub_7875DC` | `0x7875DC` | 36 | `-O2 -falign-functions=4` | **match** |
+| `sub_787600` | `0x787600` | 36 | `-O2 -falign-functions=4` | **match** |
+| `sub_787624` | `0x787624` | 36 | `-O2 -falign-functions=4` | **match** |
+| `sub_787648` | `0x787648` | 36 | `-O2 -falign-functions=4` | **match** |
+| `sub_79F654` | `0x79F654` | 36 | `-O2 -falign-functions=4` | **match** |
+| `sub_79F678` | `0x79F678` | 36 | `-O2 -falign-functions=4` | **match** |
+| `sub_79F69C` | `0x79F69C` | 36 | `-O2 -falign-functions=4` | **match** |
+| `sub_79F6C0` | `0x79F6C0` | 36 | `-O2 -falign-functions=4` | **match** |
+| `sub_7C581C` | `0x7C581C` | 36 | `-O2 -falign-functions=4` | **match** |
+| `sub_7D1A7C` | `0x7D1A7C` | 36 | `-O1 -falign-functions=4` | **match** |
+| `sub_813788` | `0x813788` | 40 | `-O2 -falign-functions=4` | **match** |
 
 The first of them is two calls and nothing else:
 
@@ -248,6 +271,41 @@ The link step is part of the proof, and it is described in
 [ABI.md](ABI.md): the compiler alone is 24 bytes short, because the TOC
 restore in the delay slot of the second call is the *linker's* work.
 
+### The second result: the frame's rule
+
+The second wave took every small wrapper whose whole body is one call -
+forty-six of them - and asked what the shape of the function says about
+the source.  Two rules came out, and both are measured, not guessed.
+
+**The size of the frame is the number of the callee's arguments.**
+
+| the callee takes | the caller's frame |
+|---|---|
+| up to eight arguments | `0x70` |
+| nine arguments | `0x80` |
+
+The sixteen extra bytes are the outgoing argument area: the compiler
+reserves them as soon as the callee takes more than eight arguments.
+The ninth argument is floating point, or the compiler would have to copy
+it to the stack, and the copy would be visible in the caller.  There is
+none, in any of the twenty-one functions that have this shape.
+
+**The order of the epilogue is the level of the file.**  At `-O2` the
+compiler restores the stack pointer before the link register; at `-O1` it
+does the opposite.  Both orders are in the retail build.
+
+| the wrappers | their frame | their level |
+|---|---|---|
+| `0x7049B4` and its eight siblings | `0x70` | `-O2` |
+| `0x770698` and its eight siblings | `0x80` | `-O1` |
+| `0x787570` and its eleven siblings | `0x80` | `-O2` |
+
+The two rules together give **thirty-two** byte-exact wrappers, and the
+prototypes of the twenty-one that have a frame of `0x80` say nine
+arguments, the last one floating point.  The types of the other
+arguments are read from the body of the routine that is called: the
+registers it reads are the arguments it uses.
+
 ### The link layout: `-falign-functions=4`
 
 The compiler aligns the functions on **eight** bytes by default.  The
@@ -273,8 +331,16 @@ the level.
 | `module_init` | the `mtlr` first | **the `mtlr` first** | the stack first |
 | the nine wrappers | the stack first | the `mtlr` first | **the stack first** |
 
-So the level is recovered file by file, exactly as the sibling project
-found on its own target.
+The second wave found **both** orders in the retail build, in the same
+shape of function: the wrappers at `0x770698` restore the link register
+before the stack pointer, and the wrappers at `0x7049B4` do the
+opposite.  So the level is recovered file by file, exactly as the
+sibling project found on its own target.
+
+| the wrappers | the retail | the compiler at `-O1` | the compiler at `-O2` |
+|---|---|---|---|
+| `0x7049B4` and its eight siblings | the stack first | the `mtlr` first | **the stack first** |
+| `0x770698` and its eight siblings | the `mtlr` first | **the `mtlr` first** | the stack first |
 
 ### The other revisions
 

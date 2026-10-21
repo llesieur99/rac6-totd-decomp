@@ -16,6 +16,7 @@
 | the first byte-exact body | **done**: `module_init` at 0x10210, 44 bytes reproduced ([src/text/module_init.c](../src/text/module_init.c)) |
 | a second byte-exact body | **done**: `float_to_short` at 0x6F0250, 80 bytes reproduced ([src/text/float_to_short_6f0250.c](../src/text/float_to_short_6f0250.c)) |
 | a wave of bodies | **done**: nine more wrappers, 36 bytes each, all byte-exact ([src/README.md](../src/README.md)) |
+| a second wave of bodies | **done**: **twenty-three** more bodies, 36 bytes each, all byte-exact, and the two rules the first wave had guessed at are now measured ([src/README.md](../src/README.md)) |
 | the link layout | **done**: `-falign-functions=4` is what puts a body at the retail's address ([COMPILER.md](COMPILER.md)) |
 | the same source in two games | **done**: the 80 bytes of `float_to_short` are identical in this game and in the next one ([CROSS-GAME.md](CROSS-GAME.md)) |
 | the link step | **done**: the SDK's TOC-adjusting call rule is found, measured and reproduced ([ABI.md](ABI.md)) |
@@ -68,11 +69,51 @@ their addresses happened to be sixteen-byte aligned.
 The level is still a property of the file: `module_init` is reproduced at
 `-O1` and the nine wrappers at `-O2`.
 
-**Twelve wrappers are parked.**  They have the same shape but a frame of
+**Twelve wrappers were parked.**  They have the same shape but a frame of
 `0x80` where the plain form has `0x70`: the caller reserves sixteen bytes
-more, which is the parameter save area of a floating point argument.  The
-form that produces it is not found yet; the first difference is at the
-fourth byte, the frame's size.
+more.  The second wave found the form that produces it, and it is the
+same rule the whole wave rests on.
+
+### The second wave: what the frame says, and what the level says
+
+The first wave applied one recipe and nine of the wrappers came out.  The
+second wave asked **why** the recipe worked, and the answer is two rules
+that the first wave had only guessed at.
+
+**The size of the frame is the number of the callee's arguments.**  A call
+to a routine of up to eight arguments leaves the caller a frame of `0x70`;
+a routine of **nine** arguments makes it reserve sixteen bytes more - the
+outgoing argument area - and the frame is `0x80`.  The ninth argument is
+floating point: an integer in that place would have to be copied to the
+stack, and the copy would be visible in the caller.  There is none.
+
+The twelve parked wrappers are this rule at work, and their prototypes say
+nine arguments.  The types of those arguments are read from the body of
+the routine they call: the registers it reads are the arguments it uses.
+The arguments it never touches are not determined by the code; they are
+floating point here, because the last one has to be.
+
+**The order of the epilogue is the level of the file.**  At `-O2` the
+compiler restores the stack pointer before the link register; at `-O1` it
+does the opposite.  The retail build has **both**, so the wrappers come
+from at least two files, and the level is recovered the same way as
+before - one file at a time.
+
+| | the first wave | the second wave |
+|---|---|---|
+| the byte-exact bodies | 11 | **34** |
+| of which the wrappers | 9 | **32** |
+| the optimisation levels in use | one | two |
+
+The third rule the wave found is about the `nop` in the delay slot: it is
+the compiler's patch point for the linker's TOC rule, and the compiler
+leaves **none** after a call to a routine of the same translation unit.
+Thirteen wrappers call a routine of their own file - a 160 to 188 byte
+function - and they are parked in
+[`nonmatching/text/sub_769954.c`](../nonmatching/text/sub_769954.c): the
+routine itself has to be reproduced first, because the compiler inlines a
+static function whose body is trivial, and the wrapper's own bytes only
+appear when the body is the authentic one.
 
 ### The compiler reproduces the retail bytes
 

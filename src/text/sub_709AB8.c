@@ -25,16 +25,29 @@
  *
  * What the code does
  * ------------------
- * A wrapper: it calls one routine and returns nothing.
+ * A wrapper: it calls one routine with its own arguments and returns nothing.
  *
  * The routine it calls has not been read yet.
  *
+ * The arguments
+ * -------------
+ * The wrapper hands its own arguments to the routine it calls, and the
+ * registers they are in are the ones the routine reads: r3, r4, r5, r6, r7, r8, r9, r10.
+ *
+ * The frame is 0x70 bytes: that is what a call to a routine of up to
+ * eight arguments leaves the caller.  A routine of nine arguments makes
+ * it reserve sixteen bytes more - the outgoing argument area - and the
+ * frame is 0x80.
+ *
+ * The types are read from the body of the routine that is called: the
+ * registers it reads are the arguments it uses.  The arguments it never
+ * touches are not determined by the code.
+ *
  * The name
  * --------
- * `sub_709AB8` is an alias, not a claim: the function calls one routine and
- * hands the result back, and the routine it calls has not been read
- * yet.  The name says the place, and the place is what the evidence
- * supports.
+ * `sub_709AB8` is an alias, not a claim: the function calls one routine
+ * and returns nothing, and the routine it calls has not been read yet.
+ * The name says the place, and the place is what the evidence supports.
  *
  * The flags
  * ---------
@@ -42,7 +55,7 @@
  * aligned on four bytes, and the default of the compiler is eight.  The
  * flag is what puts the body at the retail's address.  The optimisation
  * level is a property of the *file* the function was compiled in, and it
- * is recovered file by file.
+ * is recovered file by file: this one is -O2.
  *
  * Reopening condition
  * -------------------
@@ -51,9 +64,9 @@
  * is counted.
  */
 
-extern void sub_847D40(void);
+extern void sub_847D40(int value1, int value2, int value3, int value4, int value5, int value6, int value7, int value8);
 
-void sub_709AB8(void)
+void sub_709AB8(int value1, int value2, int value3, int value4, int value5, int value6, int value7, int value8)
 {
-    sub_847D40();
+    sub_847D40(value1, value2, value3, value4, value5, value6, value7, value8);
 }

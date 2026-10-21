@@ -23,7 +23,9 @@
     "notes": [
       "this compiler has no -mno-save-restore-tocbase and no -mno-nop-after-bl: both were introduced with a later SDK, so the flags to qualify here are the optimisation level alone.",
       "-falign-functions=4 is the link layout, not a guess: the compiler aligns the functions on eight bytes by default, the retail's are aligned on four, and the SDK's link script packs them that way. Without the flag the body lands four bytes too high.",
-      "the optimisation level is a property of the file: module_init is reproduced at -O1, the nine wrappers at -O2. The difference is the order of the epilogue."
+      "the optimisation level is a property of the file: module_init is reproduced at -O1, the nine wrappers of the first wave at -O2. The difference is the order of the epilogue.",
+      "the second wave measured the second order: the wrappers of 0x770698 and its siblings are reproduced at -O1, with the link register restored before the stack pointer, where the wrappers of the first wave are reproduced at -O2, with the stack pointer restored first.",
+      "the size of the frame is the number of the callee's arguments: up to eight arguments leave the caller a frame of 0x70, nine arguments make it reserve sixteen bytes more - the outgoing argument area - and the frame is 0x80. The ninth argument is floating point, or it would have to be copied to the stack and the copy would show in the caller."
     ]
   },
   "link_step": {
@@ -67,6 +69,22 @@
       "addresses": ["0x7049B4", "0x7049D8", "0x709AB8", "0x70BAD4", "0x70BAF8", "0x70BB1C", "0x70BF74", "0x735B40", "0x735BC0"],
       "bytes": 36,
       "flags": ["-O2", "-falign-functions=4"],
+      "result": "36 of 36 bytes each"
+    },
+    {
+      "function": "the second wave, the wrappers of a file compiled at -O2",
+      "source": "src/text/sub_*.c",
+      "addresses": ["0x7049FC", "0x787570", "0x787594", "0x7875B8", "0x7875DC", "0x787600", "0x787624", "0x787648", "0x79F654", "0x79F678", "0x79F69C", "0x79F6C0", "0x7C581C", "0x813788"],
+      "bytes": 36,
+      "flags": ["-O2", "-falign-functions=4"],
+      "result": "36 of 36 bytes each, 40 for 0x813788 and 44 for 0x7049FC"
+    },
+    {
+      "function": "the second wave, the wrappers of a file compiled at -O1",
+      "source": "src/text/sub_*.c",
+      "addresses": ["0x770698", "0x7706BC", "0x7706E0", "0x770704", "0x7734D8", "0x7734FC", "0x773520", "0x773544", "0x7D1A7C"],
+      "bytes": 36,
+      "flags": ["-O1", "-falign-functions=4"],
       "result": "36 of 36 bytes each"
     }
   ],
