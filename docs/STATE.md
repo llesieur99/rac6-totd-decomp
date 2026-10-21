@@ -115,6 +115,43 @@ routine itself has to be reproduced first, because the compiler inlines a
 static function whose body is trivial, and the wrapper's own bytes only
 appear when the body is the authentic one.
 
+### The third wave: what is left, and why
+
+The second wave took the wrappers whose whole body is one call.  The
+third wave looked at the shapes that are left, and they are three
+families of **thirty-nine, nineteen and eight** functions.
+
+**Thirty-nine functions compare an argument first.**  They compute a
+pointer into an object at an offset the code gives, and a comparison
+decides whether a routine is called at all.  Their form is found - the
+offset is a byte offset, the object is a sixty-four bit pointer, the
+routine returns a thirty-two bit value - and the first difference is
+one instruction: the retail code truncates the **sum**, the compiler
+built here narrows the **object** first and truncates the sum again.
+The narrowing is the tree level rewrite of `(T1)(A + C)` into `(T1)A +
+C`, and twenty-three flags were tried without effect.  The retail build
+used revisions `1826` and `1830` of the compiler, and the published
+sources carry `1835`: **the narrowing is the difference between the
+revisions**, and the family waits for the revision the retail used.  It
+is parked in
+[`nonmatching/text/sub_65638.c`](../nonmatching/text/sub_65638.c).
+
+**Nineteen functions and eight others call a routine of their own
+file.**  The compiler leaves no patch point after such a call, and the
+`nop` in the delay slot of a call to a routine it does not know is the
+patch point of the linker's TOC rule.  The routines are 140 to 188 bytes
+long - the same routine with different constants, a family of their own -
+and they have to be reproduced first, because the compiler inlines a
+static function whose body is trivial.  The thirteen wrappers of the
+second wave and the eight of this one are parked in
+[`nonmatching/text/sub_769954.c`](../nonmatching/text/sub_769954.c) and
+[`nonmatching/text/sub_75F800.c`](../nonmatching/text/sub_75F800.c).
+
+**The link layout is the last piece.**  Nineteen of the functions that
+are left read the globals of their module through the TOC, and their
+source needs the module's global layout - the same missing piece as the
+link layout of the program (see [ROADMAP.md](ROADMAP.md)).
+
 ### The compiler reproduces the retail bytes
 
 The rebuilt compiler is not a guess: it is the toolchain of the right
