@@ -27,9 +27,13 @@
     "encryption": "AES-128-CTR"
   },
   "disc": {
-    "image_size": null,
+    "image_size": 24163319808,
     "image_sha256": null,
-    "note": "the target is a PlayStation Network release; the retail disc (BCUS98127) carries the same program and is not measured yet"
+    "volume_id": "RATCHET5",
+    "format": "BD-ROM, ISO9660 (PVD at sector 16) with a UDF 2.01 file set (NSR03 at sector 20)",
+    "encrypted": true,
+    "note": "the disc's game data is encrypted with the disc key: 64 sectors at LBA 5056 measure 7.999 bits per byte, so the executable on the disc is not readable without that key. The disc key for BCUS98127 is not in the workspace yet. The package carries the same program and is the readable source.",
+    "disc_key": null
   },
   "executable": {
     "path": "USRDIR/EBOOT.BIN",

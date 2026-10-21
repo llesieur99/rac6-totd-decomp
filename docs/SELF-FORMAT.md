@@ -104,8 +104,15 @@ the disc, and as the **app** SELF (header type `0x1C`) in the package.
 This target's package carries the original form - header type `0x0001` -
 and the disc carries the same program.
 
-The sibling project on *A Crack in Time* finds the opposite: its package
-carries the `app` form. The difference is in the container, not in the
+The disc's copy is **encrypted with the disc key**, a separate key from
+the console's NPDRM licence: 64 sectors at LBA 5056 measure 7.999 bits
+per byte, so the disc's executable is not readable without it.  The key
+for `BCUS98127` is not in the workspace yet.
+
+The difference between the two containers is in the metadata, not in the
 program, and both are read by the same method: the header points at the
 ELF and at the metadata, and the metadata says how each section is
 encrypted.
+
+The sibling project on *A Crack in Time* finds the opposite in its
+package: it carries the `app` form.

@@ -111,4 +111,17 @@ straight at the ELF and at the metadata.
 The target is a **PlayStation Network** release: the package's content id
 carries the `UP9000` prefix, and the licence file that unlocks it
 (`UP9000-NPUA80965_00-TOOLSOFDESTRUCT1.rap`) belongs to the console, not
-to the disc.  The disc image of the same game has not been measured yet.
+to the disc.  The disc image of the same game has been measured as well:
+
+| Fact | Value |
+|---|---|
+| image size | 24,163,319,808 bytes (22.50 GiB) |
+| volume id | `RATCHET5` |
+| format | BD-ROM: an ISO9660 primary descriptor at sector 16 and a UDF 2.01 file set at sector 20 |
+| the game data | **encrypted**: 64 sectors at LBA 5056 measure 7.999 bits per byte |
+
+The disc is the **original SELF** container, and its payload is encrypted
+with the disc key - a separate key from the console's NPDRM licence.
+The key for `BCUS98127` is not in the workspace yet, so the disc's
+executable has not been read; the package carries the same program and is
+the readable source.
