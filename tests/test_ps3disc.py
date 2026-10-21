@@ -28,11 +28,21 @@ class RegionTableTest(unittest.TestCase):
         blob = header(1, [5165830])
         self.assertEqual(ps3disc.region_table(blob), [5165830])
 
-    def test_the_encrypted_ranges_start_after_the_container(self):
+    def test_the_encrypted_regions_alternate(self):
+        # the container is in the clear, the game data is encrypted, the
+        # update is in the clear again
         table = [4031, 11667392, 11798495]
-        ranges = ps3disc.encrypted_ranges(table)
-        self.assertEqual(ranges[0], (4031, 11667391))
-        self.assertEqual(ranges[1], (11667392, 11798494))
+        regions = ps3disc.regions_of(table)
+        self.assertEqual(regions[0], (0, 4031, False))
+        self.assertEqual(regions[1], (4032, 11667391, True))
+        self.assertEqual(regions[2], (11667392, 11798495, False))
+
+    def test_only_the_odd_regions_are_encrypted(self):
+        table = [4031, 11667392, 11798495]
+        self.assertEqual(ps3disc.encrypted_ranges(table), [(4032, 11667391)])
+
+    def test_a_single_region_is_the_container(self):
+        self.assertEqual(ps3disc.encrypted_ranges([5165830]), [])
 
     def test_the_iv_is_the_sector_number(self):
         self.assertEqual(ps3disc.sector_iv(0), b"\x00" * 16)

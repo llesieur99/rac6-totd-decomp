@@ -31,8 +31,16 @@
     "image_sha256": null,
     "volume_id": "RATCHET5",
     "format": "BD-ROM, ISO9660 (PVD at sector 16) with a UDF 2.01 file set (NSR03 at sector 20)",
+    "sectors": 11798496,
+    "region_table": [4031, 11667392, 11798495],
+    "regions": [
+      {"index": 0, "first": 0, "last": 4031, "encrypted": false, "content": "the container: the volume descriptors and the file tree"},
+      {"index": 1, "first": 4032, "last": 11667391, "encrypted": true, "content": "the game data"},
+      {"index": 2, "first": 11667392, "last": 11798495, "encrypted": false, "content": "the update"}
+    ],
+    "executable_lba": 4032,
     "encrypted": true,
-    "note": "the disc's game data is encrypted with the disc key: 64 sectors at LBA 5056 measure 7.999 bits per byte, so the executable on the disc is not readable without that key. The disc key for BCUS98127 is not in the workspace yet. The package carries the same program and is the readable source.",
+    "note": "the disc's game data is encrypted with the disc key: 64 sectors at LBA 5056 measure 7.999 bits per byte. The disc key for BCUS98127 is not in the workspace yet; the scheme, the three ways to get a key and the validated recipe are in docs/DISC.md. The package carries the same program and is the readable source.",
     "disc_key": null
   },
   "executable": {

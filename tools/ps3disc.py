@@ -2,7 +2,8 @@
 
 The disc's game data is encrypted with the disc's own key.  The container
 of a PS3 disc says which sectors are encrypted: the first sector holds a
-region table, and the regions that follow the first one are encrypted.
+region table, and the regions **alternate** - the container is in the
+clear, the game data is encrypted, the update is in the clear again.
 
 The scheme, as the SDK's own tool implements it:
 
@@ -12,18 +13,19 @@ The scheme, as the SDK's own tool implements it:
   16-byte "d1" with one AES-128-CBC pass and two constants of the
   platform.
 
-The tool reads the region table, the file tree (through the sectors the
-container leaves in the clear) and decrypts what is encrypted.  It never
+The tool reads the region table and decrypts what is encrypted.  It never
 writes a key anywhere: the key is an argument.
 
     python tools/ps3disc.py info      <image.iso>
     python tools/ps3disc.py tree      <image.iso>
-    python tools/ps3disc.py sectors   <image.iso> <key-hex> <lba> [count]
+    python tools/ps3disc.py sectors   <image.iso> <key-hex> <lba>
     python tools/ps3disc.py decrypt   <image.iso> <key-hex> <out.iso>
 
 The key is 32 hexadecimal characters (16 bytes).  It is the disc's own
 key, published per disc by the preservation community; the key of a disc
 the reader owns is the reader's own.
+
+The method, and the check that validates it, are in docs/DISC.md.
 """
 
 from __future__ import annotations
@@ -68,18 +70,32 @@ def region_table(head: bytes) -> list[int]:
     return [int.from_bytes(head[12 + i * 4:16 + i * 4], "big") for i in range(regions)]
 
 
-def encrypted_ranges(table: list[int]) -> list[tuple[int, int]]:
-    """The (first, last) sector of every encrypted region.
+def regions_of(table: list[int]) -> list[tuple[int, int, bool]]:
+    """The regions of a disc image, and which of them are encrypted.
 
-    The first region is the container itself: it holds the volume
-    descriptors and the file tree, and it is in the clear.
+    The regions **alternate**: the first is the container - the volume
+    descriptors and the file tree - and is in the clear; the second is
+    the game data and is encrypted; the third is in the clear again, and
+    so on.
+
+    A region's end is its table value, except for an encrypted one, which
+    ends one sector earlier: the table names the sector *after* the last
+    one that is encrypted.
     """
-    ranges = []
+    out = []
     start = 0
-    for end in table:
-        ranges.append((start, end - 1))
-        start = end
-    return ranges[1:]
+    for index, value in enumerate(table):
+        encrypted = (index % 2) == 1
+        last = value - 1 if encrypted else value
+        out.append((start, last, encrypted))
+        start = last + 1
+    return out
+
+
+def encrypted_ranges(table: list[int]) -> list[tuple[int, int]]:
+    """The (first, last) sector of every encrypted region."""
+    return [(first, last) for first, last, encrypted in regions_of(table)
+            if encrypted]
 
 
 def sector_iv(lba: int) -> bytes:
@@ -118,14 +134,10 @@ def cmd_info(args) -> int:
     print("size      : %d bytes (%d sectors)" % (size, size // SECTOR))
     print("regions   : %d" % len(table))
     print("the table : %s" % table)
-    for index, (first, last) in enumerate(encrypted_ranges(table)):
-        print("  region %d: sectors %d to %d (%d sectors, in the clear: no)"
-              % (index + 1, first, last, last - first + 1))
-    if table:
-        print("  region 0: sectors 0 to %d (the container, in the clear)" % (table[0] - 1))
-    tag = head[0xF70:0xF80]
-    if tag.strip(b"\x00"):
-        print("the tag at 0xF70: %r" % tag)
+    for index, (first, last, encrypted) in enumerate(regions_of(table)):
+        print("  region %d: sectors %d to %d (%d sectors, %s)"
+              % (index, first, last, last - first + 1,
+                 "encrypted" if encrypted else "in the clear"))
     return 0
 
 
