@@ -10,6 +10,7 @@ reproduce the comparison, and what is still a hypothesis.
 | File | Function | Address | Bytes | Result |
 |---|---|---|---|---|
 | [`text/module_init.c`](text/module_init.c) | the engine's initialisation | `0x10210` | 44 | **byte-exact** |
+| [`text/float_to_short_6f0250.c`](text/float_to_short_6f0250.c) | a floating point conversion | `0x6F0250` | 80 | **byte-exact** |
 
 When a file lands here it holds:
 

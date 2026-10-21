@@ -64,6 +64,42 @@ modules were carried over from one game to the next:
 | module 4 | `0x7ED470` - `0x7F9C88` | `0x77318C` - `0x78E1F8` |
 | module 5 | `0x9C2CC8` - `0x9DA1D0` | `0x5DB144` - `0x5EEF24` |
 
+## The same function, byte for byte, in both games
+
+One pair of functions carries **the same eighty bytes** in the two
+executables: this game's `float_to_short` at `0x6F0250` and the next
+game's at `0x6E1C78`.
+
+```
+0x6F0250  stdu   r1, -0xa0(r1)      0x6E1C78  stdu   r1, -0xa0(r1)
+0x6F0254  mflr   r0                 0x6E1C7C  mflr   r0
+0x6F0258  std    r29, 0x88(r1)      0x6E1C80  std    r29, 0x88(r1)
+0x6F025C  addi   r3, r1, 0x70       0x6E1C84  addi   r3, r1, 0x70
+0x6F0260  stfd   f1, 0xd0(r1)       0x6E1C88  stfd   f1, 0xd0(r1)
+0x6F0264  mr     r29, r4            0x6E1C8C  mr     r29, r4
+0x6F0268  addi   r4, r1, 0xd0       0x6E1C90  addi   r4, r1, 0xd0
+0x6F026C  std    r0, 0xb0(r1)       0x6E1C94  std    r0, 0xb0(r1)
+0x6F0270  bl     0x84B3E8           0x6E1C98  bl     0x903748
+0x6F0274  nop                      0x6E1C9C  nop
+0x6F0278  lhz    r0, 0x70(r1)       0x6E1CA0  lhz    r0, 0x70(r1)
+0x6F027C  lfd    f1, 0xd0(r1)       0x6E1CA4  lfd    f1, 0xd0(r1)
+0x6F0280  extsh  r0, r0            0x6E1CA8  extsh  r0, r0
+0x6F0284  stw    r0, 0(r29)        0x6E1CAC  stw    r0, 0(r29)
+0x6F0288  ld     r0, 0xb0(r1)       0x6E1CB0  ld     r0, 0xb0(r1)
+0x6F028C  ld     r29, 0x88(r1)      0x6E1CB4  ld     r29, 0x88(r1)
+0x6F0290  addi   r1, r1, 0xa0       0x6E1CB8  addi   r1, r1, 0xa0
+0x6F0294  mtlr   r0                0x6E1CBC  mtlr   r0
+0x6F0298  blr                      0x6E1CC0  blr
+```
+
+Only the callee's address differs (`0x84B3E8` here, `0x903748` there).
+
+**The same source, the same options and the same bytes in two games,
+compiled by two compilers.**  That is the strongest result the two
+projects have between them: it says the source form is the authentic one,
+and it says the engine's shared code was not touched between the two
+builds.
+
 ## The same function, twice
 
 Twenty pairs were compared instruction by instruction. The two lots are

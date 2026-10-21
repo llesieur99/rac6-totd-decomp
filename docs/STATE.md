@@ -14,6 +14,8 @@
 | the first function catalogue | **done**: 22,212 addresses published, four methods measured against the executable's own list ([CATALOGUE.md](CATALOGUE.md)) |
 | the compiler | **identified and built**: SCEI PPC GCC 4.1.1 (CELL 4.1.2.7, RTTI, $Rev: 1835 $), compiled from the published sources of the SDK 1.9.0 generation ([COMPILER.md](COMPILER.md)) |
 | the first byte-exact body | **done**: `module_init` at 0x10210, 44 bytes reproduced ([src/text/module_init.c](../src/text/module_init.c)) |
+| a second byte-exact body | **done**: `float_to_short` at 0x6F0250, 80 bytes reproduced ([src/text/float_to_short_6f0250.c](../src/text/float_to_short_6f0250.c)) |
+| the same source in two games | **done**: the 80 bytes of `float_to_short` are identical in this game and in the next one ([CROSS-GAME.md](CROSS-GAME.md)) |
 | the link step | **done**: the SDK's TOC-adjusting call rule is found, measured and reproduced ([ABI.md](ABI.md)) |
 | the globals | **done**: 121 TOC slots, 17,789 access sites ([GLOBALS.md](GLOBALS.md)) |
 | the same engine in the next game | **done**: 721 correspondences, 73.8 % of the instructions identical ([CROSS-GAME.md](CROSS-GAME.md)) |
@@ -45,22 +47,51 @@
 
 The rebuilt compiler is not a guess: it is the toolchain of the right
 family, built from its own published sources, and it reproduces the
-retail bytes of a function of the target:
+retail bytes of two functions of the target:
 
 | Function | Address | Bytes | Flags | Result |
 |---|---|---|---|---|
 | `module_init` | `0x10210` | 44 | `-O1` | **match** |
+| `float_to_short` | `0x6F0250` | 80 | `-O2` | **match** |
 
-`-O1` is the only level that reproduces it.  At `-O2` the candidate
-differs at `0x10230`, in the epilogue: the compiler restores the stack
-pointer before the link register, where the retail code does the
-opposite.  The optimisation level is a property of the *file*, so it has
-to be recovered file by file, exactly as the sibling project found on its
-own target.
+`-O1` is the only level that reproduces the first one.  At `-O2` the
+candidate differs at `0x10230`, in the epilogue: the compiler restores
+the stack pointer before the link register, where the retail code does the
+opposite.  The second one needs `-O2` and fails at `-O1` and `-Os` with a
+different frame.  **The optimisation level is a property of the *file***,
+so it has to be recovered file by file, exactly as the sibling project
+found on its own target.
 
-**Five revisions of the compiler did not change the code of that
-function.**  The distance between `$Rev: 1835 $` and the retail's
+**Five revisions of the compiler did not change the code of the function
+that was matched.**  The distance between `$Rev: 1835 $` and the retail's
 `$Rev: 1826 $` is measurable and did not show up in the bytes.
+
+### The same source, in two games
+
+`float_to_short` is the clearest result the project has.  The function
+exists in the next game at `0x6E1C78`, and **the two builds carry the
+same eighty bytes, instruction for instruction** - the same frame, the
+same copy of the double in the caller's frame, the same reload of the
+short, the same epilogue.  Only the callee's address differs.
+
+One source, one set of options, two compilers, two games, the same bytes.
+That is what rules out the coincidence: the source is the authentic form
+of the routine, not a shape that happens to fit one build.
+
+### One attempt parked
+
+A third candidate - the counterpart of the next game's function at
+`0x6E1760` - reproduces **52 of the first 76 bytes** and then differs in
+the *order* of the epilogue's loads, and in the TOC slot of a float
+constant.  It is parked in
+[`nonmatching/text/sub_6efd98.c`](../nonmatching/text/sub_6efd98.c) with
+its first difference and its reopening condition.
+
+One thing it settles: the **other compiler generation** (the SDK 2.7.0
+one the sibling project built) produces *exactly* the same 52 bytes and
+the same epilogue as this one.  The order is therefore a property of the
+source form, not of the compiler revision - the five revisions between
+`$Rev: 1835 $` and the retail's `$Rev: 1826 $` are not the cause.
 
 ### The `nop` after a call is a patch point
 
