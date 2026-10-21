@@ -16,23 +16,10 @@
  * --------------
  * This function is the counterpart of the next game's function at
  * 0x6E1760, and the two builds carry the same instructions.  The source
- * below reproduces the retail code up to the return:
- *
- *     0x6EFD98  stdu   r1, -0xa0(r1)
- *     0x6EFD9C  mflr   r0
- *     0x6EFDA0  addi   r3, r1, 0x70
- *     0x6EFDA4  stfd   f31, 0x98(r1)
- *     0x6EFDA8  li     r4, 0
- *     0x6EFDAC  fmr    f31, f1
- *     0x6EFDB0  std    r0, 0xb0(r1)
- *     0x6EFDB4  stfs   f1, 0x70(r1)
- *     0x6EFDB8  bl     0x6F1978
- *     0x6EFDBC  nop
- *     0x6EFDC0  extsh  r3, r3
- *     0x6EFDC4  cmpwi  cr7, r3, 0
- *     0x6EFDC8  blt    cr7, 0x6EFDE8
- *
- * 52 bytes, 13 instructions, identical.
+ * below reproduces the retail code up to the return: the first 52 bytes
+ * (13 instructions) are identical - the frame, the copy of the float
+ * parameter in the caller's frame, the second argument, the call, the
+ * sign extension of its result, the comparison and the branch.
  *
  * The first difference
  * --------------------

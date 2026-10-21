@@ -49,6 +49,32 @@ KEY_EXEMPT = {
 
 TEXT_SUFFIXES = (".py", ".md", ".json", ".yml", ".yaml", ".txt", ".cfg", ".toml", "")
 
+# The public text may name an instruction - the measurements are built on
+# them - but it may not carry a *listing* of the retail code.  A listing
+# is two or more lines that look like a disassembly: an address, then a
+# mnemonic.
+PPU_MNEMONICS = (
+    "add", "addi", "addic", "addis", "andi", "andis", "b", "bc", "bclr",
+    "bctrl", "beq", "beqcr", "beqlr", "bge", "bgelr", "bgt", "bl", "ble",
+    "blt", "bne", "bnelr", "br", "clrlwi", "clrldi", "cmp", "cmpi", "cmpdi",
+    "cmpwi", "cntlzw", "extsb", "extsh", "extsw", "fadd", "fadds", "fdiv",
+    "fdivs", "fmadd", "fmr", "fmsub", "fmul", "fmuls", "fneg", "fnabs",
+    "fsub", "fsubs", "fsqrt", "lfs", "lfd", "lbz", "lbzu", "ld", "ldu",
+    "lha", "lhau", "lhz", "lhzu", "lmw", "lwarx", "lwsync", "lwz", "lwzu",
+    "mflr", "mfmsr", "mfctr", "mfcr", "mfspr", "mr", "mtcrf", "mtctr",
+    "mtlr", "mtmsr", "mtspr", "mulhw", "mulhwu", "mulli", "nand", "neg",
+    "nor", "or", "orc", "rldicl", "rldicr", "rlwinm", "ror", "sc",
+    "sld", "sldw", "slw", "srw", "srad", "sradi", "srawi", "stb", "stbu",
+    "std", "stdu", "stfd", "stfs", "sth", "sthbrx", "stmw", "stw", "stwu",
+    "subf", "subfc", "subfic", "sync", "trap", "tw", "xor", "xori",
+)
+
+# An address, then a mnemonic: the shape of a disassembly line.
+LISTING = re.compile(
+    r"^\s*0x[0-9A-Fa-f]{4,8}\s*[:\s]\s*(" + "|".join(PPU_MNEMONICS) + r")\b",
+    re.IGNORECASE,
+)
+
 
 def tracked_files() -> list[str]:
     """Return the repository's tracked files.
@@ -102,6 +128,14 @@ def check() -> list[str]:
             if pattern.search(text):
                 problems.append(f"console key material in {rel} (pattern {pattern.pattern})")
                 break
+        # A listing of the retail code is game data.  One instruction
+        # named in prose is a measurement; two or more lines that look
+        # like a disassembly are a listing.
+        listing = [line for line in text.splitlines() if LISTING.match(line)]
+        if len(listing) >= 2:
+            problems.append(
+                f"instruction listing of the retail code in {rel} "
+                f"({len(listing)} lines, first at {listing[0].strip()[:60]!r})")
     return problems
 
 

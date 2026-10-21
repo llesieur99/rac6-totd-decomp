@@ -25,12 +25,10 @@ The module descriptor is a table of 24,069 `(function address, TOC base)`
 pairs, and the second word - the TOC base of the executable's own module -
 is `0x008AB078`.
 
-From then on, a global is a signed 16-bit displacement from `r2`:
-
-```
-lwz   r30, -0x7e30(r2)     ; a global
-lwz   r3, -0x7fd8(r30)     ; a member of the structure it points at
-```
+From then on, a global is a signed 16-bit displacement from `r2`: a
+32-bit load through the TOC gives the global's address, and a load
+through *that* address gives a member of the structure the global points
+at.
 
 and the window of globals is the 64 KiB around the base:
 

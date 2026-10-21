@@ -70,29 +70,17 @@ One pair of functions carries **the same eighty bytes** in the two
 executables: this game's `float_to_short` at `0x6F0250` and the next
 game's at `0x6E1C78`.
 
-```
-0x6F0250  stdu   r1, -0xa0(r1)      0x6E1C78  stdu   r1, -0xa0(r1)
-0x6F0254  mflr   r0                 0x6E1C7C  mflr   r0
-0x6F0258  std    r29, 0x88(r1)      0x6E1C80  std    r29, 0x88(r1)
-0x6F025C  addi   r3, r1, 0x70       0x6E1C84  addi   r3, r1, 0x70
-0x6F0260  stfd   f1, 0xd0(r1)       0x6E1C88  stfd   f1, 0xd0(r1)
-0x6F0264  mr     r29, r4            0x6E1C8C  mr     r29, r4
-0x6F0268  addi   r4, r1, 0xd0       0x6E1C90  addi   r4, r1, 0xd0
-0x6F026C  std    r0, 0xb0(r1)       0x6E1C94  std    r0, 0xb0(r1)
-0x6F0270  bl     0x84B3E8           0x6E1C98  bl     0x903748
-0x6F0274  nop                      0x6E1C9C  nop
-0x6F0278  lhz    r0, 0x70(r1)       0x6E1CA0  lhz    r0, 0x70(r1)
-0x6F027C  lfd    f1, 0xd0(r1)       0x6E1CA4  lfd    f1, 0xd0(r1)
-0x6F0280  extsh  r0, r0            0x6E1CA8  extsh  r0, r0
-0x6F0284  stw    r0, 0(r29)        0x6E1CAC  stw    r0, 0(r29)
-0x6F0288  ld     r0, 0xb0(r1)       0x6E1CB0  ld     r0, 0xb0(r1)
-0x6F028C  ld     r29, 0x88(r1)      0x6E1CB4  ld     r29, 0x88(r1)
-0x6F0290  addi   r1, r1, 0xa0       0x6E1CB8  addi   r1, r1, 0xa0
-0x6F0294  mtlr   r0                0x6E1CBC  mtlr   r0
-0x6F0298  blr                      0x6E1CC0  blr
-```
+| | this game | the next game |
+|---|---|---|
+| address | `0x6F0250` | `0x6E1C78` |
+| extent | 80 bytes, 20 instructions | 80 bytes, 20 instructions |
+| frame | 0xa0 bytes | 0xa0 bytes |
+| the callee | `0x84B3E8` | `0x903748` |
+| instructions identical | **20 of 20** | |
 
-Only the callee's address differs (`0x84B3E8` here, `0x903748` there).
+The two bodies are identical instruction for instruction: the same frame,
+the same copy of the double in the caller's frame, the same reload of the
+short, the same epilogue.  **Only the callee's address differs.**
 
 **The same source, the same options and the same bytes in two games,
 compiled by two compilers.**  That is the strongest result the two
@@ -152,38 +140,23 @@ rebuilt.
 The engine's initialisation function is the first function of the code
 segment in *A Crack in Time*, at `0x10200`:
 
-```
-0x00010200  stdu   r1, -0x70(r1)
-0x00010204  mflr   r0
-0x00010208  std    r0, 0x80(r1)
-0x0001020c  bl     0x10638
-0x00010210  nop
-0x00010214  bl     0x4e2518
-0x00010218  nop
-0x0001021c  ld     r0, 0x80(r1)
-0x00010220  mtlr   r0
-0x00010224  addi   r1, r1, 0x70
-0x00010228  blr
-```
+| | A Crack in Time | Tools of Destruction |
+|---|---|---|
+| address | `0x10200` | `0x10210` |
+| extent | 44 bytes, 11 instructions | 44 bytes, 11 instructions |
+| frame | 0x70 bytes | 0x70 bytes |
+| the link register's slot | `0x80(r1)` | `0x80(r1)` |
+| the first call | `0x10638` | `0x146AC` |
+| the delay slot of the first call | a `nop` | a `nop` |
+| the second call | `0x4E2518` | `0x10200` (a stub) |
+| the delay slot of the second call | a `nop` | **the TOC restore** |
+| the epilogue | the link register, then the stack | the link register, then the stack |
 
-Its counterpart in *Tools of Destruction* is at `0x10210`:
+The engine's initialisation function is the first function of the code
+segment in *A Crack in Time*, at `0x10200`; its counterpart here is at
+`0x10210`.
 
-```
-0x00010210  stdu   r1, -0x70(r1)
-0x00010214  mflr   r0
-0x00010218  std    r0, 0x80(r1)
-0x0001021c  bl     0x146ac
-0x00010220  nop
-0x00010224  bl     0x10200
-0x00010228  ld     r2, 0x28(r1)      <- the TOC base, restored
-0x0001022c  ld     r0, 0x80(r1)
-0x00010230  mtlr   r0
-0x00010234  addi   r1, r1, 0x70
-0x00010238  blr
-```
-
-Same frame (`-0x70`), same link register slot (`0x80(r1)`), same two
-calls, same epilogue. The only difference is the **delay slot of the
+Same frame, same link register slot, same two calls, same epilogue. The only difference is the **delay slot of the
 second call**: the older game uses it to restore the TOC base, the newer
 one has a `nop`. The strict signature therefore fails on a 20-byte motif,
 and the 20-byte motif is found in nine places in the older game - the
@@ -203,12 +176,9 @@ The two callees correspond as well:
 The older game registers its routines through a **table of local stubs**
 that the newer game does not have at all:
 
-```
-0x00010200  std    r2, 0x28(r1)
-0x00010204  addis  r2, r2, 2
-0x00010208  addi   r2, r2, -0x14
-0x0001020c  b      0x864598
-```
+A stub is four instructions long: it saves the TOC base in the caller's
+save slot, computes a TOC-relative address, and jumps in the tail to the
+real routine.
 
 Each stub saves `r2`, computes a TOC-relative address and jumps in the
 tail to the real routine; the caller restores `r2` in the delay slot,

@@ -144,22 +144,10 @@ property of the *function*, and a function that never names a global does
 not restore the TOC, whatever it calls.
 
 **This target is the best case for that rule.**  The engine's
-initialisation function restores the TOC base in the delay slot of its
-second call:
-
-```
-0x10210:  stdu   r1, -0x70(r1)
-          mflr   r0
-          std    r0, 0x80(r1)
-          bl     0x146ac
-          nop
-          bl     0x10200
-          ld     r2, 0x28(r1)      <- the TOC base, restored
-          ld     r0, 0x80(r1)
-          mtlr   r0
-          addi   r1, r1, 0x70
-          blr
-```
+initialisation function at `0x10210` restores the TOC base in the delay
+slot of its second call: the function is 44 bytes long, its frame is 0x70
+bytes, its second call goes to the stub at `0x10200`, and the delay slot
+of that call holds the TOC restore.
 
 while the same function in the next game has a `nop` there.  The older
 engine's initialisation named a global; the newer one's does not.
@@ -264,21 +252,13 @@ and it differs from function to function.
 
 ## The epilogue's two shapes
 
-The retail code ends its functions in two ways:
+The retail code ends its functions in two ways, and the difference is the
+order of two instructions:
 
-```
-ld r0, 0x80(r1)     ; the link register
-mtlr r0
-addi r1, r1, 0x70   ; the stack
-blr
-```
-
-```
-ld r0, 0x80(r1)
-addi r1, r1, 0x70
-mtlr r0
-blr
-```
+| shape | the order |
+|---|---|
+| one | the link register is put back **before** the stack is restored |
+| two | the stack is restored **before** the link register is put back |
 
 Both occur in the same executable, so the order is a property of the
 function, not of the build flags.  A candidate that always produces one of
