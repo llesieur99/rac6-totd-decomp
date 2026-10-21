@@ -38,19 +38,19 @@
     "region_table": [4031, 11667392, 11798495],
     "regions": [
       {"index": 0, "first": 0, "last": 4031, "encrypted": false, "content": "the container: the volume descriptors and the file tree"},
-      {"index": 1, "first": 4032, "last": 11667391, "encrypted": true, "content": "the game data"},
+      {"index": 1, "first": 4032, "last": 11667391, "encrypted": false, "content": "the game data: the files are in the clear and the archives are zlib-compressed"},
       {"index": 2, "first": 11667392, "last": 11798495, "encrypted": false, "content": "the update"}
     ],
     "executable_lba": 4032,
     "program": {
       "note": "the disc carries a **different build** of the game than the package; the program's SELF is decoded and its ELF rebuilt",
-      "self": {"size": 11161440, "sha256": "7889e889a1b718e29f7483c2b05c14d7330888e06dd937af01fe86171e70050f", "key_revision": "0x0001", "program_type": 4},
+      "self": {"size": 11161440, "sha256": "7889e889a1b718e29f7483c2b05c14d7330888e06dd937af01fe86171e70050f", "key_revision": "0x0001", "program_type": 4, "self_key": "the 'app' key of the revision (public, from the reference implementation's key vault); the metadata is encrypted with AES-256"},
       "ppu_elf": {"size": 10923400, "sha256": "4e479829857476000f1b2e62e72267ef805d1dbe7b8abc0a11b7d33c2a3732c0", "entry": "0x859418", "program_headers": 8, "section_headers": 34},
       "text_segment": "0x82C648 (8,570,696 bytes) - 176,024 bytes smaller than the package's build"
     },
     "disc_key": null,
     "disc_key_source": "the preservation community's database, one key per disc; the disc's own key is the workspace's business and is never published here",
-    "note": "the disc's game data is encrypted with the disc key; the scheme, the three ways to get a key and the validated recipe are in docs/DISC.md. The **program** is read: the SELF's metadata is keyed by the SELF key of its program type, and the disc's executable is a second build of the game."
+    "note": "a retail dump is not encrypted at the sector level: the files' magics are in the clear and the archives are zlib-compressed. The region table is the 3k3y convention, and the disc key is what the 3k3y tool needs. The program's SELF is the only encrypted part, and it is keyed by the SELF key of its program type. The scheme, the three ways to get a key and the validated recipe are in docs/DISC.md. The disc's executable is a second build of the game."
   },
   "executable": {
     "path": "USRDIR/EBOOT.BIN",

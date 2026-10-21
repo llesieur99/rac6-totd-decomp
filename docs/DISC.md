@@ -43,6 +43,30 @@ the third are in the clear; the second is encrypted.  A region that is
 encrypted ends **one sector before** its table value, because the table
 names the sector *after* the last encrypted one.
 
+**That table is the 3k3y convention, and it is worth being precise about
+what it means.**  It says where the boundaries of a *re-encrypted* image
+would be: the 3k3y tool takes a retail dump, encrypts the game data with
+the disc key, and the console reads that.  A **raw retail dump is not
+encrypted that way**, and this one is not:
+
+| the file | its first bytes | |
+|---|---|---|
+| `PS3LOGO.DAT` | `89 50 4E 47` | a PNG, in the clear |
+| `SND0.AT3` | `52 49 46 46` | a RIFF, in the clear |
+| `PIC1.PNG` | `89 50 4E 47` | a PNG, in the clear |
+| `game.psarc` | `50 53 41 52` | "PSAR", in the clear |
+| `debug.dat` | `49 47 48 57` | "IGHW", in the clear |
+
+And the archives are **zlib-compressed**, not encrypted: the psarc's
+header carries the tag `zlib`, and its entries decompress to the game's own
+file names (`/built/movies/gm_image_17/gm_image_06.cn.bik` and its
+neighbours).
+
+**So the high entropy that first looked like ciphertext is compression.**
+A sector of compressed data measures 7.9 bits per byte; ciphertext
+measures 8.0, and the difference is small enough to be worth checking
+rather than assuming.
+
 The target's disc:
 
 | | |
@@ -53,7 +77,7 @@ The target's disc:
 | title id | `BCUS98127`, version 02.00, Greatest Hits |
 | the table | `[4031, 11667392, 11798495]` |
 | region 0 | sectors 0 to 4031 - the container, in the clear |
-| region 1 | sectors 4032 to 11667391 - **the game data, encrypted** |
+| region 1 | sectors 4032 to 11667391 - the game data |
 | region 2 | sectors 11667392 to 11798495 - the update, in the clear |
 | `PS3_GAME/USRDIR/EBOOT.BIN` | **LBA 4032**, 11,161,440 bytes |
 
@@ -210,19 +234,30 @@ The key of this disc came from the preservation community's database, and
 the way to it was simple: the site refuses the connection on **port 443**
 from this machine and answers on **port 80**.  The disc's own page
 carries the key twice - in the "Permanent Information & Control" block of
-the disc's picture, and in the key database itself.
+the disc's picture, and in the key database itself.  The key is the same
+for the v01.00 and the v02.00 discs.
+
+**The key was not what opened the disc.**  It is what a 3k3y workflow
+needs - the tool that re-encrypts a dump so a console will read it - and
+nothing in this project needs it.  What opened the disc's *program* was
+the **SELF key of its program type**: a retail disc's SELF is not NPDRM,
+it is keyed by the "app" key of its revision, and that key is public
+(the key vault of the reference implementation).  Its metadata is
+encrypted with **AES-256**, which is a detail the NPDRM path does not
+have.
 
 The key is the workspace's business and is not published here; the tool
 takes it as an argument.
 
-With it, the disc's program is read, and the result is the section above:
-a second build of the game, whose initialisation function is reproduced
-byte for byte by the same source as the package's.
+## What the disc needed, and what it did not
 
-## What is left of the disc
+| | needed for the disc's program? |
+|---|---|
+| the disc key | no - it is for the 3k3y workflow |
+| the SELF key of the program type | **yes** - the metadata of the SELF |
+| the console's `.rap` | no - that is the package's way |
+| the console's key vault (the NAND) | no |
 
-The **program** is read.  The game's *assets* are not: the sectors of the
-game data stay at 7.9 bits per byte with the disc key applied, because
-they are encrypted by the platform's own per-file scheme, which is a
-layer of its own.  The decompilation does not need them - it needs the
-program - so the disc is no longer on the critical path.
+So the disc's program is read, and the result is the section above: a
+second build of the game, whose initialisation function is reproduced byte
+for byte by the same source as the package's.

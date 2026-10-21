@@ -101,6 +101,24 @@ And the same source reproduces it in both:
 One source, two releases, two layouts, the same bytes.  That is the
 project's evidence in its strongest form.
 
+### What the disc was not
+
+A retail dump is **not** encrypted at the sector level, and this one
+proves it: the files' magics are in the clear (`PNG`, `RIFF`, `PSAR`,
+`IGHW`) and the archives are **zlib-compressed**, not encrypted - the
+psarc's header carries the tag `zlib`, and its entries decompress to the
+game's own file names.
+
+What first looked like ciphertext - sectors at 7.999 bits per byte - is
+compression.  The region table in the first sector is the **3k3y
+convention**: it says where the boundaries of a *re-encrypted* image would
+be, and the disc key is what that tool needs.
+
+The disc's program was opened by the **SELF key of its program type** -
+the "app" key of the revision, public, from the reference implementation's
+key vault - and its metadata is encrypted with AES-256, a detail the
+NPDRM path does not have.  The disc key was not what opened anything.
+
 ### One attempt parked
 
 A third candidate - the counterpart of the next game's function at
