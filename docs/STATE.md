@@ -15,6 +15,8 @@
 | the compiler | **identified and built**: SCEI PPC GCC 4.1.1 (CELL 4.1.2.7, RTTI, $Rev: 1835 $), compiled from the published sources of the SDK 1.9.0 generation ([COMPILER.md](COMPILER.md)) |
 | the first byte-exact body | **done**: `module_init` at 0x10210, 44 bytes reproduced ([src/text/module_init.c](../src/text/module_init.c)) |
 | a second byte-exact body | **done**: `float_to_short` at 0x6F0250, 80 bytes reproduced ([src/text/float_to_short_6f0250.c](../src/text/float_to_short_6f0250.c)) |
+| a wave of bodies | **done**: nine more wrappers, 36 bytes each, all byte-exact ([src/README.md](../src/README.md)) |
+| the link layout | **done**: `-falign-functions=4` is what puts a body at the retail's address ([COMPILER.md](COMPILER.md)) |
 | the same source in two games | **done**: the 80 bytes of `float_to_short` are identical in this game and in the next one ([CROSS-GAME.md](CROSS-GAME.md)) |
 | the link step | **done**: the SDK's TOC-adjusting call rule is found, measured and reproduced ([ABI.md](ABI.md)) |
 | the globals | **done**: 121 TOC slots, 17,789 access sites ([GLOBALS.md](GLOBALS.md)) |
@@ -43,6 +45,34 @@
   built with.
 
 ## What the measurements gave
+
+### The wave: nine more bodies, and the link layout
+
+The first wave applied one recipe to every small wrapper the catalogue
+holds - the compiler of the right family, the optimisation level of the
+file, the link rule - and **nine of them came out byte for byte**.
+
+| | |
+|---|---|
+| the bodies | `0x7049B4`, `0x7049D8`, `0x709AB8`, `0x70BAD4`, `0x70BAF8`, `0x70BB1C`, `0x70BF74`, `0x735B40`, `0x735BC0` |
+| their size | 36 bytes, nine instructions each |
+| their flags | `-O2 -falign-functions=4` |
+
+**`-falign-functions=4` is the link layout, and it was missing.**  The
+compiler aligns the functions on eight bytes by default; the retail's are
+aligned on four, and the SDK's link script packs them that way.  Without
+the flag the body lands four bytes too high and the comparison fails at
+the first instruction - which is what the first two bodies hid, because
+their addresses happened to be sixteen-byte aligned.
+
+The level is still a property of the file: `module_init` is reproduced at
+`-O1` and the nine wrappers at `-O2`.
+
+**Twelve wrappers are parked.**  They have the same shape but a frame of
+`0x80` where the plain form has `0x70`: the caller reserves sixteen bytes
+more, which is the parameter save area of a floating point argument.  The
+form that produces it is not found yet; the first difference is at the
+fourth byte, the frame's size.
 
 ### The compiler reproduces the retail bytes
 

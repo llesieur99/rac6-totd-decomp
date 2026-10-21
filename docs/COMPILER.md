@@ -204,14 +204,24 @@ later than the objects it was built with**.
 
 ### The first result
 
-The rebuilt compiler is not a claim: it reproduces the retail bytes of a
-function of the target.
+The rebuilt compiler is not a claim: it reproduces the retail bytes of
+**eleven functions** of the target.
 
 | Function | Address | Bytes | Flags | Result |
 |---|---|---|---|---|
 | `module_init` | `0x10210` | 44 | `-O1` | **match** |
+| `float_to_short` | `0x6F0250` | 80 | `-O2` | **match** |
+| `sub_7049B4` | `0x7049B4` | 36 | `-O2 -falign-functions=4` | **match** |
+| `sub_7049D8` | `0x7049D8` | 36 | `-O2 -falign-functions=4` | **match** |
+| `sub_709AB8` | `0x709AB8` | 36 | `-O2 -falign-functions=4` | **match** |
+| `sub_70BAD4` | `0x70BAD4` | 36 | `-O2 -falign-functions=4` | **match** |
+| `sub_70BAF8` | `0x70BAF8` | 36 | `-O2 -falign-functions=4` | **match** |
+| `sub_70BB1C` | `0x70BB1C` | 36 | `-O2 -falign-functions=4` | **match** |
+| `sub_70BF74` | `0x70BF74` | 36 | `-O2 -falign-functions=4` | **match** |
+| `sub_735B40` | `0x735B40` | 36 | `-O2 -falign-functions=4` | **match** |
+| `sub_735BC0` | `0x735BC0` | 36 | `-O2 -falign-functions=4` | **match** |
 
-The candidate is two calls and nothing else:
+The first of them is two calls and nothing else:
 
 ```c
 void sub_146AC(void);
@@ -226,9 +236,7 @@ void module_init(void)
 ```
 
 linked at `0x10210` with the callees at their retail addresses, and
-compared byte for byte with the retail bytes.  `-O1` is the only
-optimisation level that reproduces them: at `-O2` the epilogue's order
-changes, at `-O0` the frame does.
+compared byte for byte with the retail bytes.
 
 **Five revisions of the compiler did not change the code of that
 function.**  The distance between `$Rev: 1835 $` and the retail's
@@ -239,6 +247,34 @@ rebuilt.
 The link step is part of the proof, and it is described in
 [ABI.md](ABI.md): the compiler alone is 24 bytes short, because the TOC
 restore in the delay slot of the second call is the *linker's* work.
+
+### The link layout: `-falign-functions=4`
+
+The compiler aligns the functions on **eight** bytes by default.  The
+retail's are aligned on **four**, and the SDK's link script packs them
+that way.  The flag is not a guess: it is what puts the body at the
+retail's address.
+
+Without it the body lands four bytes too high and the comparison fails
+at the very first instruction.  The first two bodies hid the problem,
+because their addresses (`0x10210` and `0x6F0250`) happen to be
+sixteen-byte aligned.
+
+### The optimisation level is a property of the file
+
+`module_init` is reproduced at `-O1` and fails at `-O2`; the nine
+wrappers are reproduced at `-O2`.  The difference is the order of the
+epilogue: the retail's puts the stack restore between the load of the
+link register and the `mtlr`, and the compiler's own order depends on
+the level.
+
+| | the retail | the compiler at `-O1` | the compiler at `-O2` |
+|---|---|---|---|
+| `module_init` | the `mtlr` first | **the `mtlr` first** | the stack first |
+| the nine wrappers | the stack first | the `mtlr` first | **the stack first** |
+
+So the level is recovered file by file, exactly as the sibling project
+found on its own target.
 
 ### The other revisions
 
