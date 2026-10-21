@@ -12,7 +12,7 @@ say to each other.
 | Ratchet &amp; Clank Future: A Crack in Time | 2009 | `SDK270, $Rev: 3019 $` (106 objects), `SDK250, $Rev: 2824 $` (1) |
 
 The sibling project
-([`rac6-totd-decomp`](https://github.com/llesieur99/rac6-totd-decomp)) works
+([`rac8-act-decomp`](https://github.com/llesieur99/rac8-act-decomp)) works
 on the newer game. This one works on the older one, and the two share their
 tooling.
 

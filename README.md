@@ -14,7 +14,7 @@ and the first measured results. It publishes no game code, no assets and no
 console keys.
 
 It is the sibling of
-[`rac6-totd-decomp`](https://github.com/llesieur99/rac6-totd-decomp) (A Crack in
+[`rac8-act-decomp`](https://github.com/llesieur99/rac8-act-decomp) (A Crack in
 Time): the same evidence standard, the same layout, the same tools - and a
 different, *older* target.
 
